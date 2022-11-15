@@ -176,8 +176,11 @@ const CGFloat kMinRefershTime = 0.5;
 }
 
 - (void)brc_setContentOffset:(CGPoint)contentOffset {
-    
-    [self brc_setContentOffset:contentOffset];
+    CGPoint safeContentOffset = contentOffset;
+    if (isnan(contentOffset.x) || isinf(contentOffset.x)) {
+        safeContentOffset.x = 0;
+    }
+    [self brc_setContentOffset:safeContentOffset];
 
     if (!self.brc_context)
         return;
@@ -190,13 +193,14 @@ const CGFloat kMinRefershTime = 0.5;
     UIEdgeInsets contentInset = self.contentInset;
     CGFloat height = self.frame.size.height;
 
-    CGFloat offset = (contentOffset.y + contentInset.top + height) - MAX((self.contentSize.height + contentInset.bottom + contentInset.top), height);
+    CGFloat offset = (safeContentOffset.y + contentInset.top + height) - MAX((self.contentSize.height + contentInset.bottom + contentInset.top), height);
     
     if (offset > 0)
         [self handleBottomBounceOffset:offset];
     else
         self.brc_context.refreshed = NO;
 }
+
 
 - (void)brc_checkRefreshingTimeAndPerformBlock:(void (^)())block {
 
